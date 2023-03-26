@@ -131,16 +131,16 @@ class Ball {
             }
             console.log(padel.direction)
             if (padel.direction === 1) {
-                this.spin = padel.direction;
+                this.spin = Math.floor(Math.random() * 3) + 1;
             }
             if (padel.direction === -1) {
-                this.spin = padel.direction;
+                this.spin = Math.floor(Math.random() * -3) - 1;;
             }
             if (this.speed >= 0) {
-                this.speed += 0.5;
+                this.speed += 1;
             }
             if (this.speed <= 0) {
-                this.speed -= 0.5;
+                this.speed -= 1;
             }
             particalEngine.start_particles(ball.bounds.x,ball.bounds.y)
 
@@ -148,21 +148,25 @@ class Ball {
     }
 }
 class Button {
-    constructor(text,x,y) {
+    constructor(text,src,width,height) {
         this.clickedOn = false;
         this.image = new Image();
+        this.image.src = src
         this.text = text;
-        this.bounds = new Rect(10,10,100,30)
+        this.scale = 0.5;
+        this.bounds = new Rect(10,10,width*this.scale,height*this.scale)
+
     }
-    draw(x,y) {
+    draw(x,y,StartPageX,StartPageY, EndPageX, EndPageY) {
         this.bounds.x = x;
         this.bounds.y = y;
         ctx.fillStyle = "black"
-        ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+        // ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+        ctx.drawImage(this.image,StartPageX,StartPageY,EndPageX,EndPageY,this.bounds.x + this.bounds.w/2-this.scale*500,this.bounds.y + this.bounds.h/2-this.scale*155,this.bounds.w*this.scale*2.6,this.bounds.h*this.scale*2.6)
         ctx.fillStyle = "white"
-        ctx.font = "bold 20px serif";
-            ctx.textAlign = "center";
-        ctx.fillText(this.text,this.bounds.x+this.bounds.w/2,this.bounds.y+this.bounds.h/2+5)
+        ctx.font = "bold "+this.scale*150+"px serif";
+        ctx.textAlign = "center";
+        ctx.fillText(this.text,this.bounds.x+this.bounds.w/2,this.bounds.y+this.bounds.h/2+this.scale*50)
     }
 }
 class Scene {
@@ -188,44 +192,49 @@ class Powerup {
         }
     }
 }
-class HotBar {
-    constructor() {
-        this.bounds = new Rect(10,10,250,100)
-    }
-    draw() {
-        for (let i = 0; i < powerups.length; i++) {
-            ctx.fillRect(this.bounds.x+i*20,this.bounds.y,10,10)
-        }
-        this.bounds.x = canvas.width/2-700
-        this.bounds.y = canvas.height/2+290
-        ctx.lineWidth = 5
-        ctx.strokeRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
-    }
-}
-let powerups = []
-let powerup = new Powerup
-powerups.push(powerup)
+// class HotBar {
+//     constructor() {
+//         this.bounds = new Rect(10,10,250,100)
+//     }
+//     draw() {
+//         for (let i = 0; i < powerups.length; i++) {
+//             ctx.fillRect(this.bounds.x+i*20,this.bounds.y,10,10)
+//         }
+//         this.bounds.x = canvas.width/2-700
+//         this.bounds.y = canvas.height/2+290
+//         ctx.lineWidth = 5
+//         ctx.strokeRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+//     }
+// }
 let particalEngine = new ParticleSource();
-let hotbar = new HotBar();
+// let hotbar = new HotBar();
 let mouse = new Mouse();
-let startButton = new Button("Start");
-let retryButton = new Button("Retry");
+let startButton = new Button("Start","./Assets/Button.png",600,250);
+let optionButton = new Button("Options","./Assets/Button.png",600,250);
+let quitButton = new Button("Quit","./Assets/Button.png",600,250);
+let backButton = new Button("Back","./Assets/Button.png",600,250);
+backButton.scale = 0.3
+let vollume = new Button("","./Assets/Button.png",550,300);
+let vollumeOff = new Button("","./Assets/Button.png",500,300);
+let retryButton = new Button("Retry","./Assets/Button.png",600,300);
 let menu = new Scene("./Assets/BG.png");
 let ball = new Ball();
 let padel = new Padel();
+let powerups = []
 function keyboardLoop() {
-    if (currentKey.get("w")) {
+    console.log(currentKey)
+    if (currentKey.get("w") || currentKey.get("ArrowUp")) {
         padel.bounds.y -= padel.speed
         padel.direction = -1   
     }
-    if (currentKey.get("s")) {
+    if (currentKey.get("s") || currentKey.get("ArrowDown")) {
         padel.bounds.y += padel.speed
         padel.direction = 1
     }
-    if (navKey.get("a")) {
+    if (navKey.get("a") || currentKey.get("ArrowLeft")) {
         padel.sideOn = 1
     }
-    if (navKey.get("d")) {
+    if (navKey.get("d") || currentKey.get("ArrowRight")) {
         padel.sideOn = -1
     }
 }
@@ -265,18 +274,42 @@ function dottedLine() {
         ctx.fillRect(canvas.width/2+5,10+i*50,10,15)
     }
 }
+let vollumeLevel = true;
 function loop() {
     ctx.clearRect(0,0,canvas.width,canvas.height)
     if (mode === "menu") {
         menu.draw();
-        startButton.draw(canvas.width/2-20,10);
+        startButton.draw(canvas.width/2-120,150,0,400,600,250);
+        optionButton.draw(canvas.width/2-120,300,0,400,600,250);
+        quitButton.draw(canvas.width/2-120,450,0,400,600,250);
+
+
         if (mouse.clickOn(startButton)) {
             mode = "game"
         }
+        if (mouse.clickOn(optionButton)) {
+            mode = "option"
+            
+        }
+    }
+    if (mode === "option") {
+        backButton.draw(canvas.width/2-875,-20,0,400,600,250);
+        if (mouse.clickOn(backButton)) {
+            mode = "menu"
+        }
+        if (vollumeLevel) {
+            vollume.draw(canvas.width/2-120,150,2000,2050,345,195);
+        }
+        if (vollumeLevel === false) {
+            vollumeOff.draw(canvas.width/2-60,165,3000,540,300,195);
+        }
+        if (mouse.clickOn(vollume)) {
+            vollumeLevel = !vollumeLevel;
+        }
+        
     }
     if (mode === "dead") {
-        ctx.font = "bold 48px serif";     
-        retryButton.draw(canvas.width/2-20,10);
+        retryButton.draw(canvas.width/2-120,100,0,400,600,250);
         if (mouse.clickOn(retryButton))  {
             mode = "game"
             ball.speed = 2;
@@ -287,11 +320,7 @@ function loop() {
     if (mode === "game") {
         padel.draw();
         ball.draw();
-        hotbar.draw();
-        for (let i = 0; i < powerups.length; i++) {
-            powerups[i].draw();
-            powerups[i].collision();
-        }
+        // hotbar.draw();
         dottedLine();
         particalEngine.draw_particles(ctx,238, 134, 149)
         padel.check_switch();
