@@ -4,6 +4,9 @@ const ctx = canvas.getContext("2d");
 let currentKey = new Map();
 let navKey = new Map();
 let mode = "menu"
+let score = 0;
+let pastScore = null;
+
 class ParticleSource {
     constructor() {
         this.parts = [];
@@ -108,6 +111,13 @@ class Padel {
             this.bounds.x = canvas.width-20
         }
     }
+    reset() {
+        this.speed = 4;
+        this.sideOn = 1;
+        this.direction = 0;
+        this.bounds.x = 10;
+        this.bounds.y = canvas.height/2-50
+    }
 }
 class Ball {
     constructor() {
@@ -125,6 +135,7 @@ class Ball {
     }
     collision() {
         if (this.bounds.intersects(padel.bounds)) {
+            score += 1;
             this.speed *= -1;
             if (padel.direction === 0) {
                 this.spin = -1;
@@ -137,14 +148,20 @@ class Ball {
                 this.spin = Math.floor(Math.random() * -3) - 1;;
             }
             if (this.speed >= 0) {
-                this.speed += 1;
+                this.speed += 0.5;
             }
             if (this.speed <= 0) {
-                this.speed -= 1;
+                this.speed -= 0.5;
             }
             particalEngine.start_particles(ball.bounds.x,ball.bounds.y)
 
         }
+    }
+    reset() {
+        this.speed = 3;
+        this.spin = 0;
+        this.bounds.x = canvas.width/2-5
+        this.bounds.y = canvas.height/2-5
     }
 }
 class Button {
@@ -220,7 +237,6 @@ let retryButton = new Button("Retry","./Assets/Button.png",600,300);
 let menu = new Scene("./Assets/BG.png");
 let ball = new Ball();
 let padel = new Padel();
-let powerups = []
 function keyboardLoop() {
     console.log(currentKey)
     if (currentKey.get("w") || currentKey.get("ArrowUp")) {
@@ -268,12 +284,7 @@ function WorldColision() {
         mode = "dead"
     }
 }
-function dottedLine() {
-    for (let i = 0; i < 20;i ++) {
-        ctx.fillStyle = "#a3a3a3"
-        ctx.fillRect(canvas.width/2+5,10+i*50,10,15)
-    }
-}
+
 let vollumeLevel = true;
 function loop() {
     ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -289,7 +300,6 @@ function loop() {
         }
         if (mouse.clickOn(optionButton)) {
             mode = "option"
-            
         }
     }
     if (mode === "option") {
@@ -309,19 +319,29 @@ function loop() {
         
     }
     if (mode === "dead") {
-        retryButton.draw(canvas.width/2-120,100,0,400,600,250);
+        retryButton.draw(canvas.width/2-120,0,0,400,600,250);
         if (mouse.clickOn(retryButton))  {
-            mode = "game"
-            ball.speed = 2;
-            ball.bounds.x = canvas.width/2-5
-            ball.bounds.y = canvas.height/2-5
+                padel.reset();
+                ball.reset();
+                if (pastScore === null) {
+                    pastScore = score;
+
+                }
+                if (pastScore != null) {
+                    if (score >= pastScore) {
+                        pastScore = score;
+                    }
+                }
+                score = 0;
+                mode = "menu"
         }
     }
     if (mode === "game") {
         padel.draw();
         ball.draw();
-        // hotbar.draw();
-        dottedLine();
+        ctx.fillText(score,canvas.width/2+10,canvas.height/2)
+        ctx.fillText(pastScore,canvas.width/2-800,canvas.height/2-350)
+
         particalEngine.draw_particles(ctx,238, 134, 149)
         padel.check_switch();
         particalEngine.update_particles();
