@@ -91,7 +91,7 @@ class Mouse {
 }
 class Padel {
     constructor() {
-        this.speed = 2;
+        this.speed = 4;
         this.sideOn = 1;
         this.direction = 0;
         this.bounds = new Rect(10,canvas.height/2-50,10,100)
@@ -111,7 +111,7 @@ class Padel {
 }
 class Ball {
     constructor() {
-        this.speed = 2;
+        this.speed = 3;
         this.spin = 0;
         this.bounds = new Rect(canvas.width/2-5,canvas.height/2-5,10,10)
     }
@@ -142,6 +142,8 @@ class Ball {
             if (this.speed <= 0) {
                 this.speed -= 0.5;
             }
+            particalEngine.start_particles(ball.bounds.x,ball.bounds.y)
+
         }
     }
 }
@@ -150,14 +152,16 @@ class Button {
         this.clickedOn = false;
         this.image = new Image();
         this.text = text;
-        this.bounds = new Rect(x,y,100,30)
+        this.bounds = new Rect(10,10,100,30)
     }
-    draw() {
+    draw(x,y) {
+        this.bounds.x = x;
+        this.bounds.y = y;
         ctx.fillStyle = "black"
         ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
         ctx.fillStyle = "white"
         ctx.font = "bold 20px serif";
-        ctx.textAlign = "center";
+            ctx.textAlign = "center";
         ctx.fillText(this.text,this.bounds.x+this.bounds.w/2,this.bounds.y+this.bounds.h/2+5)
     }
 }
@@ -171,9 +175,41 @@ class Scene {
         ctx.drawImage(this.image,this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
     }
 }
+class Powerup {
+    constructor() {
+        this.bounds = new Rect(Math.floor(Math.random() * canvas.width),Math.floor(Math.random() * canvas.height),20,20)
+    }
+    draw() {
+        ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+    }
+    collision() {
+        if (ball.bounds.intersects(this.bounds)) {
+            powerups.pop();
+        }
+    }
+}
+class HotBar {
+    constructor() {
+        this.bounds = new Rect(10,10,250,100)
+    }
+    draw() {
+        for (let i = 0; i < powerups.length; i++) {
+            ctx.fillRect(this.bounds.x+i*20,this.bounds.y,10,10)
+        }
+        this.bounds.x = canvas.width/2-700
+        this.bounds.y = canvas.height/2+290
+        ctx.lineWidth = 5
+        ctx.strokeRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+    }
+}
+let powerups = []
+let powerup = new Powerup
+powerups.push(powerup)
 let particalEngine = new ParticleSource();
+let hotbar = new HotBar();
 let mouse = new Mouse();
-let startButton = new Button("Start",canvas.width,10);
+let startButton = new Button("Start");
+let retryButton = new Button("Retry");
 let menu = new Scene("./Assets/BG.png");
 let ball = new Ball();
 let padel = new Padel();
@@ -223,22 +259,40 @@ function WorldColision() {
         mode = "dead"
     }
 }
+function dottedLine() {
+    for (let i = 0; i < 20;i ++) {
+        ctx.fillStyle = "#a3a3a3"
+        ctx.fillRect(canvas.width/2+5,10+i*50,10,15)
+    }
+}
 function loop() {
     ctx.clearRect(0,0,canvas.width,canvas.height)
     if (mode === "menu") {
         menu.draw();
-        startButton.draw();
+        startButton.draw(canvas.width/2-20,10);
         if (mouse.clickOn(startButton)) {
             mode = "game"
         }
     }
     if (mode === "dead") {
-        ctx.font = "bold 48px serif";
-        ctx.fillText("You Died",canvas.width/2,100)
+        ctx.font = "bold 48px serif";     
+        retryButton.draw(canvas.width/2-20,10);
+        if (mouse.clickOn(retryButton))  {
+            mode = "game"
+            ball.speed = 2;
+            ball.bounds.x = canvas.width/2-5
+            ball.bounds.y = canvas.height/2-5
+        }
     }
     if (mode === "game") {
         padel.draw();
         ball.draw();
+        hotbar.draw();
+        for (let i = 0; i < powerups.length; i++) {
+            powerups[i].draw();
+            powerups[i].collision();
+        }
+        dottedLine();
         particalEngine.draw_particles(ctx,238, 134, 149)
         padel.check_switch();
         particalEngine.update_particles();
