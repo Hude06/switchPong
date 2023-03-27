@@ -7,20 +7,26 @@
     <title>Document</title>
 </head>
 <body>
-    <script src="https://sfxr.me/riffwave.js"></script>
-    <script src="https://sfxr.me/sfxr.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <canvas id="canvas" width="800" height="500"></canvas>
     <script src="Game.js"type="module"></script>
     <style>
         canvas{
-            border: 5px solid black;
+            border: 10px solid black;
             padding-left: 0;
             padding-right: 0;
             margin-left: auto;
             margin-right: auto;
             display: block;
         }
-    </style>
+        @font-face {   
+            font-family: "Inter-Thin";   
+            src: url(fonts/Roboto.woff2) 
+            format('woff2'),        
+            url(fonts/Roboto.woff) 
+            format('woff'),        
+            url(/Assets/Inter-Thin.ttf) 
+            format('truetype'); 
+        }   
+        </style>
 </body>
 </html>

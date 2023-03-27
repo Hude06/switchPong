@@ -6,6 +6,7 @@ let navKey = new Map();
 let mode = "menu"
 let score = 0;
 let music = new Audio("./Assets/8Bit.mp3");
+//Audio?
 class ParticleSource {
     constructor() {
         this.parts = [];
@@ -134,7 +135,11 @@ class Ball {
     }
     collision() {
         if (this.bounds.intersects(padel.bounds)) {
-            score += 1;
+            Shake = true
+            setTimeout(() => {
+                Shake = false
+              }, 100);
+                          score += 1;
             this.speed *= -1;
             if (padel.direction === 0) {
                 this.spin = -1;
@@ -179,7 +184,7 @@ class Button {
         // ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
         ctx.drawImage(this.image,StartPageX,StartPageY,EndPageX,EndPageY,this.bounds.x + this.bounds.w/2-this.scale*500,this.bounds.y + this.bounds.h/2-this.scale*155,this.bounds.w*this.scale*2.6,this.bounds.h*this.scale*2.6)
         ctx.fillStyle = "white"
-        ctx.font = "bold "+this.scale*150+"px serif";
+        ctx.font = "60px Inter-Thin";
         ctx.textAlign = "center";
         ctx.fillText(this.text,this.bounds.x+this.bounds.w/2,this.bounds.y+this.bounds.h/2+this.scale*50)
     }
@@ -194,35 +199,7 @@ class Scene {
         ctx.drawImage(this.image,this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
     }
 }
-class Powerup {
-    constructor() {
-        this.bounds = new Rect(Math.floor(Math.random() * canvas.width),Math.floor(Math.random() * canvas.height),20,20)
-    }
-    draw() {
-        ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
-    }
-    collision() {
-        if (ball.bounds.intersects(this.bounds)) {
-            powerups.pop();
-        }
-    }
-}
-// class HotBar {
-//     constructor() {
-//         this.bounds = new Rect(10,10,250,100)
-//     }
-//     draw() {
-//         for (let i = 0; i < powerups.length; i++) {
-//             ctx.fillRect(this.bounds.x+i*20,this.bounds.y,10,10)
-//         }
-//         this.bounds.x = canvas.width/2-700
-//         this.bounds.y = canvas.height/2+290
-//         ctx.lineWidth = 5
-//         ctx.strokeRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
-//     }
-// }
 let particalEngine = new ParticleSource();
-// let hotbar = new HotBar();
 let mouse = new Mouse();
 let startButton = new Button("Start","./Assets/Button.png",600,250);
 let optionButton = new Button("Options","./Assets/Button.png",600,250);
@@ -236,7 +213,6 @@ let menu = new Scene("./Assets/BG.png");
 let ball = new Ball();
 let padel = new Padel();
 function keyboardLoop() {
-    console.log(currentKey)
     if (currentKey.get("w") || currentKey.get("ArrowUp")) {
         padel.bounds.y -= padel.speed
         padel.direction = -1   
@@ -252,6 +228,9 @@ function keyboardLoop() {
         padel.sideOn = -1
     }
 }
+function postShake() {
+    ctx.restore();
+  }
 function keyboardInit() {
     window.addEventListener("keydown", function (event) {
         currentKey.set(event.key, true);
@@ -269,11 +248,19 @@ function WorldColision() {
     if (ball.bounds.y >= canvas.height-20) {
         ball.spin = -1;
         particalEngine.start_particles(ball.bounds.x,ball.bounds.y)
+        Shake = true
+        setTimeout(() => {
+            Shake = false
+          }, 100);
 
     }
     if (ball.bounds.y <= 0) {
         ball.spin = 1;
         particalEngine.start_particles(ball.bounds.x,ball.bounds.y)
+        Shake = true
+        setTimeout(() => {
+            Shake = false
+          }, 100);
     }
     if (ball.bounds.x <= 0) {
         mode = "dead"
@@ -281,11 +268,23 @@ function WorldColision() {
     if (ball.bounds.x >= canvas.width) {
         mode = "dead"
     }
+    if (padel.bounds.y <= 0) {
+        padel.bounds.y = 0;
+    }
+    if (padel.bounds.y >= canvas.height-100) {
+        padel.bounds.y = canvas.height-100;
+    }
 }
-
+let Shake = false;
 let vollumeLevel = true;
 function loop() {
+    ctx.save();
     ctx.clearRect(0,0,canvas.width,canvas.height)
+    if (Shake) {
+        var dx = Math.random()*20;
+        var dy = Math.random()*20;
+        ctx.translate(dx, dy);
+    }
     if (mode === "menu") {
         menu.draw();
         startButton.draw(canvas.width/2-120,150,0,400,600,250);
@@ -328,9 +327,11 @@ function loop() {
     if (mode === "game") {
         music.play();
         music.loop = true;
+        music.volume = 0.5;
         padel.draw();
         ball.draw();
-        ctx.fillText(score,canvas.width/2+10,canvas.height/2)
+        ctx.font = "bold 80px Verdana";
+        ctx.fillText(score,canvas.width/2-20,canvas.height/2-20)
         particalEngine.draw_particles(ctx,238, 134, 149)
         padel.check_switch();
         particalEngine.update_particles();
@@ -340,6 +341,7 @@ function loop() {
     }
     keyboardLoop();
     navKey.clear();
+    postShake();
     requestAnimationFrame(loop)
 }
 function ResizeCanvas() {
