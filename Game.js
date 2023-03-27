@@ -5,8 +5,7 @@ let currentKey = new Map();
 let navKey = new Map();
 let mode = "menu"
 let score = 0;
-let pastScore = null;
-
+let music = new Audio("./Assets/8Bit.mp3");
 class ParticleSource {
     constructor() {
         this.parts = [];
@@ -140,7 +139,6 @@ class Ball {
             if (padel.direction === 0) {
                 this.spin = -1;
             }
-            console.log(padel.direction)
             if (padel.direction === 1) {
                 this.spin = Math.floor(Math.random() * 3) + 1;
             }
@@ -313,7 +311,7 @@ function loop() {
         if (vollumeLevel === false) {
             vollumeOff.draw(canvas.width/2-60,165,3000,540,300,195);
         }
-        if (mouse.clickOn(vollume)) {
+        if (mouse.clickOn(vollume)) {                
             vollumeLevel = !vollumeLevel;
         }
         
@@ -323,25 +321,16 @@ function loop() {
         if (mouse.clickOn(retryButton))  {
                 padel.reset();
                 ball.reset();
-                if (pastScore === null) {
-                    pastScore = score;
-
-                }
-                if (pastScore != null) {
-                    if (score >= pastScore) {
-                        pastScore = score;
-                    }
-                }
                 score = 0;
                 mode = "menu"
         }
     }
     if (mode === "game") {
+        music.play();
+        music.loop = true;
         padel.draw();
         ball.draw();
         ctx.fillText(score,canvas.width/2+10,canvas.height/2)
-        ctx.fillText(pastScore,canvas.width/2-800,canvas.height/2-350)
-
         particalEngine.draw_particles(ctx,238, 134, 149)
         padel.check_switch();
         particalEngine.update_particles();
