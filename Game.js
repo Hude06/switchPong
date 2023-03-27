@@ -97,7 +97,7 @@ class Padel {
         this.speed = 4;
         this.sideOn = 1;
         this.direction = 0;
-        this.bounds = new Rect(10,canvas.height/2-50,10,100)
+        this.bounds = new Rect(10,canvas.height/2+50,10,100)
     }
     draw() {
         ctx.fillStyle = "black"
@@ -121,43 +121,48 @@ class Padel {
 }
 class Ball {
     constructor() {
-        this.speed = 3;
+        this.launched = false;
+        this.speed = 4;
         this.spin = 0;
-        this.bounds = new Rect(canvas.width/2-5,canvas.height/2-5,10,10)
+        this.bounds = new Rect(canvas.width-100,canvas.height-150,10,10)
     }
     draw() {
         ctx.fillStyle = "black"
         ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
     }
     update() {
-        this.bounds.x -= this.speed;
-        this.bounds.y += this.spin;
+        if (this.launched === true) {
+            this.bounds.x -= this.speed;
+            this.bounds.y += this.spin;
+        }
     }
     collision() {
-        if (this.bounds.intersects(padel.bounds)) {
-            Shake = true
-            setTimeout(() => {
-                Shake = false
-              }, 100);
-                          score += 1;
-            this.speed *= -1;
-            if (padel.direction === 0) {
-                this.spin = -1;
+        if (this.launched === true) {
+            console.log(this.bounds.y)
+            if (this.bounds.intersects(padel.bounds)) {
+                Shake = true
+                setTimeout(() => {
+                    Shake = false
+                  }, 150);
+                score += 1;
+                this.speed *= -1;
+                if (padel.direction === 0) {
+                    this.spin = -1;
+                }
+                if (padel.direction === 1) {
+                    this.spin = 1;
+                }
+                if (padel.direction === -1) {
+                    this.spin = -1;
+                }
+                if (this.speed >= 0) {
+                    this.speed += 0.5;
+                }
+                if (this.speed <= 0) {
+                    this.speed -= 0.5;
+                }
+                particalEngine.start_particles(ball.bounds.x,ball.bounds.y)
             }
-            if (padel.direction === 1) {
-                this.spin = Math.floor(Math.random() * 3) + 1;
-            }
-            if (padel.direction === -1) {
-                this.spin = Math.floor(Math.random() * -3) - 1;;
-            }
-            if (this.speed >= 0) {
-                this.speed += 0.5;
-            }
-            if (this.speed <= 0) {
-                this.speed -= 0.5;
-            }
-            particalEngine.start_particles(ball.bounds.x,ball.bounds.y)
-
         }
     }
     reset() {
@@ -213,18 +218,44 @@ let menu = new Scene("./Assets/BG.png");
 let ball = new Ball();
 let padel = new Padel();
 function keyboardLoop() {
-    if (currentKey.get("w") || currentKey.get("ArrowUp")) {
+    if (currentKey.get("w")) {
+        if (ball.launched === false) {
+            ball.launched = true;
+        }
         padel.bounds.y -= padel.speed
         padel.direction = -1   
     }
-    if (currentKey.get("s") || currentKey.get("ArrowDown")) {
+    if (currentKey.get("ArrowUp")) {
+        if (ball.launched === false) {
+            ball.launched = true;
+        }
+        padel.bounds.y -= padel.speed
+        padel.direction = -1  
+    }
+    if (currentKey.get("s")) {
+        if (ball.launched === false) {
+            ball.launched = true;
+        }
+        padel.bounds.y += padel.speed
+        padel.direction = 1
+    }
+    if (currentKey.get("ArrowDown")) {
+        if (ball.launched === false) {
+            ball.launched = true;
+        }
         padel.bounds.y += padel.speed
         padel.direction = 1
     }
     if (navKey.get("a") || currentKey.get("ArrowLeft")) {
+        if (ball.launched === false) {
+            ball.launched = true;
+        }
         padel.sideOn = 1
     }
     if (navKey.get("d") || currentKey.get("ArrowRight")) {
+        if (ball.launched === false) {
+            ball.launched = true;
+        }
         padel.sideOn = -1
     }
 }
@@ -251,7 +282,7 @@ function WorldColision() {
         Shake = true
         setTimeout(() => {
             Shake = false
-          }, 100);
+          }, 150);
 
     }
     if (ball.bounds.y <= 0) {
@@ -260,7 +291,7 @@ function WorldColision() {
         Shake = true
         setTimeout(() => {
             Shake = false
-          }, 100);
+          }, 150);
     }
     if (ball.bounds.x <= 0) {
         mode = "dead"
@@ -331,6 +362,7 @@ function loop() {
         padel.draw();
         ball.draw();
         ctx.font = "bold 80px Verdana";
+        ctx.fillStyle = "gray"
         ctx.fillText(score,canvas.width/2-20,canvas.height/2-20)
         particalEngine.draw_particles(ctx,238, 134, 149)
         padel.check_switch();
