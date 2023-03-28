@@ -118,6 +118,7 @@ class Padel {
         this.direction = 0;
         this.bounds.x = 10;
         this.bounds.y = canvas.height/2-50
+        this.bounds.h = 100
     }
 }
 class Ball {
@@ -211,23 +212,24 @@ class BallSpeedPowerup {
         this.direction = Math.floor(Math.random()*2 + 1);
     }
     draw() {
+        if (ball.launched) {
+            ctx.fillStyle = "#34eb61"
             ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+        }
     }
     update() {
-        if (this.bounds.intersects(padel.bounds)) {
-            if (ball.speed >= 0) {
-                ball.speed = 2;
+        if (ball.launched) {
+            if (this.bounds.intersects(padel.bounds)) {
+                padel.bounds.h *= 1.2
+                padel.bounds.y -= padel.bounds.h/3
+                powerUps.shift();
             }
-            if (ball.speed <= 0) {
-                ball.speed = -2;
+            if (this.direction === 1) {
+                this.bounds.x -= score+1
             }
-            powerUps.pop();
-        }
-        if (this.direction === 1) {
-            this.bounds.x -= 5
-        }
-        if (this.direction === 2) {
-            this.bounds.x += 5
+            if (this.direction === 2) {
+                this.bounds.x += score+1
+            }
         }
     }
 }
@@ -367,6 +369,9 @@ function loop() {
     }
     if (mode === "menu") {
         timmer = 0;
+        if (powerUps.length != 0) {
+            powerUps.length = 0;
+        }
         menu.draw();
         startButton.draw(canvas.width/2-120,100,0,400,600,250);
         optionButton.draw(canvas.width/2-120,250,0,400,600,250);
