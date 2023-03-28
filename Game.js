@@ -9,7 +9,6 @@ let music = new Audio("./Assets/8Bit.mp3");
 let currentMouse = new Map();
 let Shake = false;
 let vollumeLevel = true;
-//Audio?
 class ParticleSource {
     constructor() {
         this.parts = [];
@@ -76,7 +75,6 @@ class Mouse {
 
     }
     clickOn(item) {
-        console.log(currentMouse)
         if (this.bounds.intersects(item.bounds) && currentMouse.get(0) === true) {
             return true;
         }
@@ -123,7 +121,7 @@ class Padel {
 class Ball {
     constructor() {
         this.launched = false;
-        this.speed = 4;
+        this.speed = 2;
         this.spin = 0;
         this.spinSpeed = 3;
         this.bounds = new Rect(canvas.width-100,canvas.height-150,10,10)
@@ -205,6 +203,33 @@ class Scene {
         ctx.drawImage(this.image,this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
     }
 }
+class Powerup {
+    constructor() {
+        this.bounds = new Rect(canvas.width/2,Math.floor(Math.random() * canvas.height) + 1,20,20)
+        this.direction = 2;
+    }
+    draw() {
+        if (this.visable) {
+            ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+        }
+    }
+    update() {
+        if (this.bounds.intersects(padel.bounds)) {
+            if (ball.speed >= 0) {
+                ball.speed = 2;
+            }
+            if (ball.speed <= 0) {
+                ball.speed = -2;
+            }
+        }
+        if (this.direction === 1) {
+            this.bounds.x -= 5
+        }
+        if (this.direction === 2) {
+            this.bounds.x += 5
+        }
+    }
+}
 let particalEngine = new ParticleSource();
 let mouse = new Mouse();
 let startButton = new Button("Start","./Assets/Button.png",600,250);
@@ -217,9 +242,13 @@ let vollumeOff = new Button("","./Assets/Button.png",550,300);
 let retryButton = new Button("Retry","./Assets/Button.png",600,300);
 let menu = new Scene("./Assets/BG.png");
 let option = new Scene("./Assets/BG.png");
-
 let ball = new Ball();
 let padel = new Padel();
+
+let ballSlowDown = new Powerup();
+let ballSpeeds = [ballSlowDown]
+
+
 function keyboardLoop() {
     if (currentKey.get("w")) {
         if (ball.launched === false) {
@@ -312,7 +341,6 @@ function WorldColision() {
 function loop() {
     ctx.save();
     ctx.clearRect(0,0,canvas.width,canvas.height)
-    console.log(vollumeLevel)
     if (vollumeLevel) {
         music.play();
         music.loop = true;
@@ -342,7 +370,7 @@ function loop() {
     }
     if (mode === "option") {
         option.draw();
-        backButton.draw(canvas.width/2-700,-20,0,400,600,250);
+        backButton.draw(-50,-20,0,400,600,250);
         if (mouse.clickOn(backButton)) {
             mode = "menu"
         }
@@ -369,6 +397,8 @@ function loop() {
     if (mode === "game") {
         padel.draw();
         ball.draw();
+        ballSlowDown.draw();
+        ballSlowDown.update();
         ctx.font = "bold 80px Verdana";
         ctx.fillStyle = "gray"
         ctx.fillText(score,canvas.width/2-20,canvas.height/2-20)
