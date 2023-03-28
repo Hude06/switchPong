@@ -9,6 +9,8 @@ let music = new Audio("./Assets/8Bit.mp3");
 let currentMouse = new Map();
 let Shake = false;
 let vollumeLevel = true;
+let timmer = 0;
+let SpawnTime = Math.floor(Math.random() * 10 + 1)
 class ParticleSource {
     constructor() {
         this.parts = [];
@@ -203,15 +205,13 @@ class Scene {
         ctx.drawImage(this.image,this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
     }
 }
-class Powerup {
+class BallSpeedPowerup {
     constructor() {
         this.bounds = new Rect(canvas.width/2,Math.floor(Math.random() * canvas.height) + 1,20,20)
-        this.direction = 2;
+        this.direction = Math.floor(Math.random()*2 + 1);
     }
     draw() {
-        if (this.visable) {
             ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
-        }
     }
     update() {
         if (this.bounds.intersects(padel.bounds)) {
@@ -221,6 +221,7 @@ class Powerup {
             if (ball.speed <= 0) {
                 ball.speed = -2;
             }
+            powerUps.pop();
         }
         if (this.direction === 1) {
             this.bounds.x -= 5
@@ -236,18 +237,18 @@ let startButton = new Button("Start","./Assets/Button.png",600,250);
 let optionButton = new Button("Options","./Assets/Button.png",600,250);
 let quitButton = new Button("Quit","./Assets/Button.png",600,250);
 let backButton = new Button("Back","./Assets/Button.png",600,250);
+let controllButton = new Button("Controlls","./Assets/Button.png",600,250);
 backButton.scale = 0.3
 let vollume = new Button("","./Assets/Button.png",550,300);
 let vollumeOff = new Button("","./Assets/Button.png",550,300);
 let retryButton = new Button("Retry","./Assets/Button.png",600,300);
 let menu = new Scene("./Assets/BG.png");
 let option = new Scene("./Assets/BG.png");
+let controlls = new Scene("./Assets/BG.png");
 let ball = new Ball();
 let padel = new Padel();
 
-let ballSlowDown = new Powerup();
-let ballSpeeds = [ballSlowDown]
-
+let powerUps = []
 
 function keyboardLoop() {
     if (currentKey.get("w")) {
@@ -293,7 +294,7 @@ function keyboardLoop() {
 }
 function postShake() {
     ctx.restore();
-  }
+}
 function keyboardInit() {
     window.addEventListener("keydown", function (event) {
         currentKey.set(event.key, true);
@@ -330,6 +331,7 @@ function WorldColision() {
     }
     if (ball.bounds.x >= canvas.width) {
         mode = "dead"
+
     }
     if (padel.bounds.y <= 0) {
         padel.bounds.y = 0;
@@ -337,6 +339,15 @@ function WorldColision() {
     if (padel.bounds.y >= canvas.height-100) {
         padel.bounds.y = canvas.height-100;
     }
+}
+function SpawnPowerup() {
+    console.log(SpawnTime)
+    if ((timmer/60) === SpawnTime)  {
+            let ballPowerUp = new BallSpeedPowerup();
+            powerUps.push(ballPowerUp)
+            SpawnTime = Math.floor(Math.random() * 10 +1)
+            timmer = 0;
+        }
 }
 function loop() {
     ctx.save();
@@ -355,17 +366,35 @@ function loop() {
         ctx.translate(dx, dy);
     }
     if (mode === "menu") {
+        timmer = 0;
         menu.draw();
-        startButton.draw(canvas.width/2-120,150,0,400,600,250);
-        optionButton.draw(canvas.width/2-120,300,0,400,600,250);
-        quitButton.draw(canvas.width/2-120,450,0,400,600,250);
-
-
+        startButton.draw(canvas.width/2-120,100,0,400,600,250);
+        optionButton.draw(canvas.width/2-120,250,0,400,600,250);
+        controllButton.draw(canvas.width/2-120,400,0,400,600,250)
+        quitButton.draw(canvas.width/2-120,550,0,400,600,250);
         if (mouse.clickOn(startButton)) {
             mode = "game"
         }
         if (mouse.clickOn(optionButton)) {
             mode = "option"
+        }
+        if (mouse.clickOn(controllButton)) {
+            mode = "controlls"
+        }
+    }
+    if (mode === "controlls") {
+        controlls.draw();
+        backButton.draw(-50,-20,0,400,600,250);
+        ctx.font = "bold 50px Inter-Thin";
+        ctx.fillText("W = Move Up",200,150);
+        ctx.fillText("S = Move Down",231,250);
+        ctx.fillText("A = Switch To The Left Side",375,350);
+        ctx.fillText("D = Switch To The Right Side",390,450);
+
+
+
+        if (mouse.clickOn(backButton)) {
+            mode = "menu"
         }
     }
     if (mode === "option") {
@@ -395,10 +424,14 @@ function loop() {
         }
     }
     if (mode === "game") {
+        timmer += 1;
+        SpawnPowerup();
         padel.draw();
         ball.draw();
-        ballSlowDown.draw();
-        ballSlowDown.update();
+        for (let i = 0; i < powerUps.length; i++) {
+            powerUps[i].draw();
+            powerUps[i].update();
+        }
         ctx.font = "bold 80px Verdana";
         ctx.fillStyle = "gray"
         ctx.fillText(score,canvas.width/2-20,canvas.height/2-20)
