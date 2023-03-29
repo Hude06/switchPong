@@ -3,7 +3,7 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 let currentKey = new Map();
 let navKey = new Map();
-let mode = "menu"
+let mode = "intro"
 let score = 0;
 let music = new Audio("./Assets/8Bit.mp3");
 let currentMouse = new Map();
@@ -209,6 +209,7 @@ class Scene {
 class BallSpeedPowerup {
     constructor() {
         this.bounds = new Rect(canvas.width/2,Math.floor(Math.random() * canvas.height) + 1,20,20)
+        this.hit = false;
         this.direction = Math.floor(Math.random()*2 + 1);
     }
     draw() {
@@ -220,9 +221,9 @@ class BallSpeedPowerup {
     update() {
         if (ball.launched) {
             if (this.bounds.intersects(padel.bounds)) {
-                padel.bounds.h *= 1.2
+                this.hit = true
+                padel.bounds.h *= 1.1
                 padel.bounds.y -= padel.bounds.h/3
-                powerUps.shift();
             }
             if (this.direction === 1) {
                 this.bounds.x -= score+1
@@ -236,6 +237,8 @@ class BallSpeedPowerup {
 let particalEngine = new ParticleSource();
 let mouse = new Mouse();
 let startButton = new Button("Start","./Assets/Button.png",600,250);
+let introButton = new Button("","./Assets/Button.png",600,300);
+
 let optionButton = new Button("Options","./Assets/Button.png",600,250);
 let quitButton = new Button("Quit","./Assets/Button.png",600,250);
 let backButton = new Button("Back","./Assets/Button.png",600,250);
@@ -253,28 +256,14 @@ let padel = new Padel();
 let powerUps = []
 
 function keyboardLoop() {
-    if (currentKey.get("w")) {
+    if (currentKey.get("w") || currentKey.get("ArrowUp")) {
         if (ball.launched === false) {
             ball.launched = true;
         }
         padel.bounds.y -= padel.speed
         padel.direction = -1   
     }
-    if (currentKey.get("ArrowUp")) {
-        if (ball.launched === false) {
-            ball.launched = true;
-        }
-        padel.bounds.y -= padel.speed
-        padel.direction = -1  
-    }
-    if (currentKey.get("s")) {
-        if (ball.launched === false) {
-            ball.launched = true;
-        }
-        padel.bounds.y += padel.speed
-        padel.direction = 1
-    }
-    if (currentKey.get("ArrowDown")) {
+    if (currentKey.get("s") || currentKey.get("ArrowDown")) {
         if (ball.launched === false) {
             ball.launched = true;
         }
@@ -338,8 +327,8 @@ function WorldColision() {
     if (padel.bounds.y <= 0) {
         padel.bounds.y = 0;
     }
-    if (padel.bounds.y >= canvas.height-100) {
-        padel.bounds.y = canvas.height-100;
+    if (padel.bounds.y >= canvas.height-padel.bounds.h) {
+        padel.bounds.y = canvas.height-padel.bounds.h;
     }
 }
 function SpawnPowerup() {
@@ -351,6 +340,7 @@ function SpawnPowerup() {
             timmer = 0;
         }
 }
+let textOn = 1;
 function loop() {
     ctx.save();
     ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -436,6 +426,9 @@ function loop() {
         for (let i = 0; i < powerUps.length; i++) {
             powerUps[i].draw();
             powerUps[i].update();
+            if (powerUps[i].hit === true) {
+                powerUps.shift();
+            }
         }
         ctx.font = "bold 80px Verdana";
         ctx.fillStyle = "gray"
@@ -446,6 +439,32 @@ function loop() {
         ball.update();
         ball.collision();
         WorldColision();
+    }
+    if (mode === "intro") {
+        ctx.pixelSmoothingEnabled = false;
+        ctx.lineWidth = 10;
+        introButton.draw(canvas.width/2-160,canvas.height/2+200,10,970,400,200);
+        ctx.font = "60px Inter-Light";
+        ctx.fillStyle = "black"
+        ctx.textAlign = "center"
+        if (textOn === 1 || textOn === 2) {
+            ctx.fillText("Switch Pong",canvas.width/2,canvas.height/2-100)
+
+        }
+        if (mouse.clickOn(introButton)) {
+            textOn += 1;
+            Shake = true
+            setTimeout(() => {
+                Shake = false
+              }, 150);
+        }
+        if (textOn === 2) {
+            ctx.fillText("By Jude Makes",canvas.width/2,canvas.height/2)
+        }
+        if (textOn === 3) {
+            mode = "menu"
+        }
+
     }
     keyboardLoop();
     navKey.clear();
