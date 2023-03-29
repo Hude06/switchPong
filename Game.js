@@ -5,11 +5,14 @@ let currentKey = new Map();
 let navKey = new Map();
 let mode = "intro"
 let score = 0;
-let music = new Audio("./Assets/8Bit.mp3");
+let music = new Audio("./Assets/Helios.mp3");
+let hit = new Audio("./Assets/Hit.mp3");
+let powerup = new Audio("./Assets/powerUp.mp3")
 let currentMouse = new Map();
 let Shake = false;
 let vollumeLevel = true;
 let timmer = 0;
+let highScore = 0;
 let SpawnTime = Math.floor(Math.random() * 10 + 1)
 class ParticleSource {
     constructor() {
@@ -142,6 +145,7 @@ class Ball {
     collision() {
         if (this.launched === true) {
             if (this.bounds.intersects(padel.bounds)) {
+                hit.play();
                 Shake = true
                 setTimeout(() => {
                     Shake = false
@@ -224,6 +228,7 @@ class BallSpeedPowerup {
                 this.hit = true
                 padel.bounds.h *= 1.1
                 padel.bounds.y -= padel.bounds.h/3
+                powerup.play();
             }
             if (this.direction === 1) {
                 this.bounds.x -= score+1
@@ -246,7 +251,8 @@ let controllButton = new Button("Controlls","./Assets/Button.png",600,250);
 backButton.scale = 0.3
 let vollume = new Button("","./Assets/Button.png",550,300);
 let vollumeOff = new Button("","./Assets/Button.png",550,300);
-let retryButton = new Button("Retry","./Assets/Button.png",600,300);
+let retryButton = new Button("MENU","./Assets/Button.png",600,300);
+retryButton.scale = 0.45
 let menu = new Scene("./Assets/BG.png");
 let option = new Scene("./Assets/BG.png");
 let controlls = new Scene("./Assets/BG.png");
@@ -256,31 +262,33 @@ let padel = new Padel();
 let powerUps = []
 
 function keyboardLoop() {
-    if (currentKey.get("w") || currentKey.get("ArrowUp")) {
-        if (ball.launched === false) {
-            ball.launched = true;
+    if (mode === "game") {
+        if (currentKey.get("w") || currentKey.get("ArrowUp")) {
+            if (ball.launched === false) {
+                ball.launched = true;
+            }
+            padel.bounds.y -= padel.speed
+            padel.direction = -1   
         }
-        padel.bounds.y -= padel.speed
-        padel.direction = -1   
-    }
-    if (currentKey.get("s") || currentKey.get("ArrowDown")) {
-        if (ball.launched === false) {
-            ball.launched = true;
+        if (currentKey.get("s") || currentKey.get("ArrowDown")) {
+            if (ball.launched === false) {
+                ball.launched = true;
+            }
+            padel.bounds.y += padel.speed
+            padel.direction = 1
         }
-        padel.bounds.y += padel.speed
-        padel.direction = 1
-    }
-    if (navKey.get("a") || currentKey.get("ArrowLeft")) {
-        if (ball.launched === false) {
-            ball.launched = true;
+        if (navKey.get("a") || currentKey.get("ArrowLeft")) {
+            if (ball.launched === false) {
+                ball.launched = true;
+            }
+            padel.sideOn = 1
         }
-        padel.sideOn = 1
-    }
-    if (navKey.get("d") || currentKey.get("ArrowRight")) {
-        if (ball.launched === false) {
-            ball.launched = true;
+        if (navKey.get("d") || currentKey.get("ArrowRight")) {
+            if (ball.launched === false) {
+                ball.launched = true;
+            }
+            padel.sideOn = -1
         }
-        padel.sideOn = -1
     }
 }
 function postShake() {
@@ -347,7 +355,7 @@ function loop() {
     if (vollumeLevel) {
         music.play();
         music.loop = true;
-        music.volume = 0.5;
+        music.volume = 0.3;
     }
     if (vollumeLevel === false) {
         music.pause();
@@ -385,6 +393,10 @@ function loop() {
         ctx.fillText("S = Move Down",231,250);
         ctx.fillText("A = Switch To The Left Side",375,350);
         ctx.fillText("D = Switch To The Right Side",390,450);
+        ctx.fillText("Green Squares = Paddle Bigger",412,550);
+        ctx.fillText("Stay alive and Have FUN!!!!",365,650);
+
+
 
 
 
@@ -410,7 +422,16 @@ function loop() {
         
     }
     if (mode === "dead") {
-        retryButton.draw(canvas.width/2-120,0,0,400,600,250);
+        if (score >= highScore) {
+            highScore = score;
+        }
+        ctx.textAlign = "center"
+        ctx.font = "bold 40px Verdana";
+        ctx.fillStyle = "gray"
+        ctx.fillText("SCORE " + score,canvas.width/2,canvas.height/2-100)
+        ctx.fillText("HIGH SCORE " + highScore,canvas.width/2,canvas.height/2+225-100)
+        retryButton.draw(canvas.width/2-150,canvas.height/2-100,0,400,600,250);
+
         if (mouse.clickOn(retryButton))  {
                 padel.reset();
                 ball.reset();
@@ -442,14 +463,12 @@ function loop() {
     }
     if (mode === "intro") {
         ctx.pixelSmoothingEnabled = false;
-        ctx.lineWidth = 10;
-        introButton.draw(canvas.width/2-160,canvas.height/2+200,10,970,400,200);
-        ctx.font = "60px Inter-Light";
+        introButton.draw(canvas.width/2-175,canvas.height/2+200,10,970,380,200);
         ctx.fillStyle = "black"
         ctx.textAlign = "center"
         if (textOn === 1 || textOn === 2) {
+            ctx.font = "80px Inter-Light";
             ctx.fillText("Switch Pong",canvas.width/2,canvas.height/2-100)
-
         }
         if (mouse.clickOn(introButton)) {
             textOn += 1;
@@ -459,6 +478,7 @@ function loop() {
               }, 150);
         }
         if (textOn === 2) {
+            ctx.font = "60px Inter-Thin";
             ctx.fillText("By Jude Makes",canvas.width/2,canvas.height/2)
         }
         if (textOn === 3) {
