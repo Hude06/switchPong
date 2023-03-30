@@ -13,7 +13,8 @@ let Shake = false;
 let vollumeLevel = true;
 let timmer = 0;
 let highScore = 0;
-let SpawnTime = Math.floor(Math.random() * 10 + 1)
+let SpawnTime = Math.floor(Math.random() * 10 + 1);
+let gloabalSpeed = 1;
 class ParticleSource {
     constructor() {
         this.parts = [];
@@ -101,11 +102,12 @@ class Padel {
         this.speed = 4;
         this.sideOn = 1;
         this.direction = 0;
-        this.bounds = new Rect(10,canvas.height/2+50,10,100)
+        this.bounds = new Rect(10,canvas.height/2+50,10,125)
     }
     draw() {
         ctx.fillStyle = "black"
         ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+
     }
     check_switch() {
         if (this.sideOn === 1) {
@@ -123,11 +125,16 @@ class Padel {
         this.bounds.y = canvas.height/2-50
         this.bounds.h = 100
     }
+    update() {
+        // if (ball.launched === true) {
+        //     this.bounds.h -= score/10;
+        // }
+    }
 }
 class Ball {
     constructor() {
         this.launched = false;
-        this.speed = 2;
+        this.speed = 2*gloabalSpeed;
         this.spin = 0;
         this.spinSpeed = 3;
         this.bounds = new Rect(canvas.width-100,canvas.height-150,10,10)
@@ -138,7 +145,7 @@ class Ball {
     }
     update() {
         if (this.launched === true) {
-            this.bounds.x -= this.speed;
+            this.bounds.x -= this.speed*gloabalSpeed;
             this.bounds.y += this.spin;
         }
     }
@@ -231,20 +238,29 @@ class BallSpeedPowerup {
                 powerup.play();
             }
             if (this.direction === 1) {
-                this.bounds.x -= score+1
+                this.bounds.x -= (score+1)*gloabalSpeed
             }
             if (this.direction === 2) {
-                this.bounds.x += score+1
+                this.bounds.x += (score+1)*gloabalSpeed
             }
         }
     }
 }
+class Level {
+    constructor() {
+        this.obsticals = []
+    }
+    draw() {
+        
+    }
+}
 let particalEngine = new ParticleSource();
 let mouse = new Mouse();
-let startButton = new Button("Start","./Assets/Button.png",600,250);
+let storyButton = new Button("Story","./Assets/Button.png",600,250);
 let introButton = new Button("","./Assets/Button.png",600,300);
-
 let optionButton = new Button("Options","./Assets/Button.png",600,250);
+let endlessButton = new Button("Endless","./Assets/Button.png",600,250);
+
 let quitButton = new Button("Quit","./Assets/Button.png",600,250);
 let backButton = new Button("Back","./Assets/Button.png",600,250);
 let controllButton = new Button("Controlls","./Assets/Button.png",600,250);
@@ -258,23 +274,40 @@ let option = new Scene("./Assets/BG.png");
 let controlls = new Scene("./Assets/BG.png");
 let ball = new Ball();
 let padel = new Padel();
-
 let powerUps = []
-
+let textOn = 1;
+let tutorial = true;
+function ShowTutorial() {
+    if (ball.bounds.x >= canvas.width-400 && tutorial === true) {
+        if (padel.sideOn === 1) {
+            console.log("Hit")
+            gloabalSpeed = 0.5;
+            console.log(gloabalSpeed)
+            ctx.font = "bold 40px Verdana";
+            ctx.globalAlpha = 0.5;
+            ctx.fillText("Use A and D To switch Sides",canvas.width/2-300,300)
+            ctx.globalAlpha = 1;
+        }
+        if (padel.sideOn === -1) {
+            gloabalSpeed = 1;
+            tutorial = false;
+        }
+    }
+}
 function keyboardLoop() {
-    if (mode === "game") {
+    if (mode === "endless" || mode === "story") {
         if (currentKey.get("w") || currentKey.get("ArrowUp")) {
             if (ball.launched === false) {
                 ball.launched = true;
             }
-            padel.bounds.y -= padel.speed
+            padel.bounds.y -= padel.speed*gloabalSpeed
             padel.direction = -1   
         }
         if (currentKey.get("s") || currentKey.get("ArrowDown")) {
             if (ball.launched === false) {
                 ball.launched = true;
             }
-            padel.bounds.y += padel.speed
+            padel.bounds.y += padel.speed*gloabalSpeed
             padel.direction = 1
         }
         if (navKey.get("a") || currentKey.get("ArrowLeft")) {
@@ -348,7 +381,6 @@ function SpawnPowerup() {
             timmer = 0;
         }
 }
-let textOn = 1;
 function loop() {
     ctx.save();
     ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -371,12 +403,14 @@ function loop() {
             powerUps.length = 0;
         }
         menu.draw();
-        startButton.draw(canvas.width/2-120,100,0,400,600,250);
-        optionButton.draw(canvas.width/2-120,250,0,400,600,250);
-        controllButton.draw(canvas.width/2-120,400,0,400,600,250)
-        quitButton.draw(canvas.width/2-120,550,0,400,600,250);
-        if (mouse.clickOn(startButton)) {
-            mode = "game"
+        storyButton.draw(canvas.width/2-120,50,0,400,600,250);
+        optionButton.draw(canvas.width/2-120,350,0,400,600,250);
+        endlessButton.draw(canvas.width/2-120,200,0,400,600,250);
+
+        controllButton.draw(canvas.width/2-120,500,0,400,600,250)
+        quitButton.draw(canvas.width/2-120,650,0,400,600,250);
+        if (mouse.clickOn(endlessButton)) {
+            mode = "endless"
         }
         if (mouse.clickOn(optionButton)) {
             mode = "option"
@@ -389,12 +423,12 @@ function loop() {
         controlls.draw();
         backButton.draw(-50,-20,0,400,600,250);
         ctx.font = "bold 50px Inter-Thin";
-        ctx.fillText("W = Move Up",200,150);
-        ctx.fillText("S = Move Down",231,250);
-        ctx.fillText("A = Switch To The Left Side",375,350);
-        ctx.fillText("D = Switch To The Right Side",390,450);
-        ctx.fillText("Green Squares = Paddle Bigger",412,550);
-        ctx.fillText("Stay alive and Have FUN!!!!",365,650);
+        ctx.fillText("W = Move Up",canvas.width/2,150);
+        ctx.fillText("S = Move Down",canvas.width/2,250);
+        ctx.fillText("A = Switch To The Left Side",canvas.width/2,350);
+        ctx.fillText("D = Switch To The Right Side",canvas.width/2,450);
+        ctx.fillText("Green Squares = Paddle Bigger",canvas.width/2,550);
+        ctx.fillText("Stay alive and Have FUN!!!!",canvas.width/2,650);
 
 
 
@@ -439,11 +473,13 @@ function loop() {
                 mode = "menu"
         }
     }
-    if (mode === "game") {
+    if (mode === "endless") {
         timmer += 1;
+        ShowTutorial();
         SpawnPowerup();
         padel.draw();
         ball.draw();
+        padel.update();
         for (let i = 0; i < powerUps.length; i++) {
             powerUps[i].draw();
             powerUps[i].update();
