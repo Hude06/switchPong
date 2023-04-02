@@ -47,7 +47,7 @@ class ParticleSource {
                 ctx.beginPath();
                 ctx.fillStyle = "red"
                 ctx.fillStyle = `rgba(238,134,149,${a}%)`;
-                ctx.fillRect(part.pos.x, part.pos.y, 10, 10);
+                ctx.fillRect(part.pos.x, part.pos.y, 15,15);
                 ctx.restore();
             }
         }
@@ -106,7 +106,11 @@ class Padel {
     }
     draw() {
         ctx.fillStyle = "black"
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "gray";
         ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+        ctx.shadowBlur = 0;
+
 
     }
     check_switch() {
@@ -141,7 +145,11 @@ class Ball {
     }
     draw() {
         ctx.fillStyle = "black"
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "gray";
         ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+        ctx.shadowBlur = 0;
+
     }
     update() {
         if (this.launched === true) {
@@ -222,6 +230,8 @@ class BallSpeedPowerup {
         this.bounds = new Rect(canvas.width/2,Math.floor(Math.random() * canvas.height) + 1,20,20)
         this.hit = false;
         this.direction = Math.floor(Math.random()*2 + 1);
+        this.timeLength = 10;
+        this.timeStarted = false;
     }
     draw() {
         if (ball.launched) {
@@ -233,8 +243,7 @@ class BallSpeedPowerup {
         if (ball.launched) {
             if (this.bounds.intersects(padel.bounds)) {
                 this.hit = true
-                padel.bounds.h *= 1.1
-                padel.bounds.y -= padel.bounds.h/3
+                padel.bounds.h *= 1.2
                 powerup.play();
             }
             if (this.direction === 1) {
@@ -244,14 +253,7 @@ class BallSpeedPowerup {
                 this.bounds.x += (score+1)*gloabalSpeed
             }
         }
-    }
-}
-class Level {
-    constructor() {
-        this.obsticals = []
-    }
-    draw() {
-
+        console.log(this.timeLength)
     }
 }
 let particalEngine = new ParticleSource();
@@ -280,9 +282,7 @@ let tutorial = true;
 function ShowTutorial() {
     if (ball.bounds.x >= canvas.width-400 && tutorial === true) {
         if (padel.sideOn === 1) {
-            console.log("Hit")
             gloabalSpeed = 0.5;
-            console.log(gloabalSpeed)
             ctx.font = "bold 40px Verdana";
             ctx.globalAlpha = 0.5;
             ctx.fillText("Use A and D To switch Sides",canvas.width/2-300,300)
@@ -373,7 +373,6 @@ function WorldColision() {
     }
 }
 function SpawnPowerup() {
-    console.log(SpawnTime)
     if ((timmer/60) === SpawnTime)  {
             let ballPowerUp = new BallSpeedPowerup();
             powerUps.push(ballPowerUp)
@@ -398,6 +397,7 @@ function loop() {
         ctx.translate(dx, dy);
     }
     if (mode === "menu") {
+        gloabalSpeed = 1;
         timmer = 0;
         if (powerUps.length != 0) {
             powerUps.length = 0;
@@ -458,6 +458,7 @@ function loop() {
     if (mode === "dead") {
         if (score >= highScore) {
             highScore = score;
+            
         }
         ctx.textAlign = "center"
         ctx.font = "bold 40px Verdana";
@@ -489,7 +490,10 @@ function loop() {
         }
         ctx.font = "bold 80px Verdana";
         ctx.fillStyle = "gray"
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "black";
         ctx.fillText(score,canvas.width/2-20,canvas.height/2-20)
+        ctx.shadowBlur = 0;
         particalEngine.draw_particles(ctx,238, 134, 149)
         padel.check_switch();
         particalEngine.update_particles();
@@ -526,6 +530,7 @@ function loop() {
     navKey.clear();
     postShake();
     currentMouse.clear();
+    trasition();
     requestAnimationFrame(loop)
 }
 function ResizeCanvas() {
