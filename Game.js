@@ -1,20 +1,6 @@
 import { Rect } from "./RectUtils.js";
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-let currentKey = new Map();
-let navKey = new Map();
-let mode = "intro"
-let score = 0;
-let music = new Audio("./Assets/Helios.mp3");
-let hit = new Audio("./Assets/Hit.mp3");
-let powerup = new Audio("./Assets/powerUp.mp3")
-let currentMouse = new Map();
-let Shake = false;
-let vollumeLevel = true;
-let timmer = 0;
-let highScore = 0;
-let SpawnTime = Math.floor(Math.random() * 10 + 1);
-let gloabalSpeed = 1;
 class ParticleSource {
     constructor() {
         this.parts = [];
@@ -102,16 +88,14 @@ class Padel {
         this.speed = 4;
         this.sideOn = 1;
         this.direction = 0;
-        this.bounds = new Rect(10,canvas.height/2+50,10,125)
+        this.bounds = new Rect(10,canvas.height/2+50,15,125)
     }
     draw() {
-        ctx.fillStyle = "black"
+        ctx.fillStyle = "#eb8c34"
         ctx.shadowBlur = 10;
         ctx.shadowColor = "gray";
         ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
         ctx.shadowBlur = 0;
-
-
     }
     check_switch() {
         if (this.sideOn === 1) {
@@ -144,17 +128,16 @@ class Ball {
         this.bounds = new Rect(canvas.width-100,canvas.height-150,10,10)
     }
     draw() {
-        ctx.fillStyle = "black"
+        ctx.fillStyle = "#ff6973"
         ctx.shadowBlur = 10;
         ctx.shadowColor = "gray";
         ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
         ctx.shadowBlur = 0;
-
     }
     update() {
         if (this.launched === true) {
             this.bounds.x -= this.speed*gloabalSpeed;
-            this.bounds.y += this.spin;
+            this.bounds.y += this.spin; 
         }
     }
     collision() {
@@ -162,6 +145,7 @@ class Ball {
             if (this.bounds.intersects(padel.bounds)) {
                 hit.play();
                 Shake = true
+                  
                 setTimeout(() => {
                     Shake = false
                   }, 150);
@@ -235,15 +219,19 @@ class BallSpeedPowerup {
     }
     draw() {
         if (ball.launched) {
-            ctx.fillStyle = "#34eb61"
+            ctx.shadowBlur = 10
+            ctx.shadowColor = "#15788c";
+            ctx.fillStyle = " #00b9be "
             ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+            ctx.shadowBlur = 0
+
         }
     }
     update() {
         if (ball.launched) {
             if (this.bounds.intersects(padel.bounds)) {
                 this.hit = true
-                padel.bounds.h *= 1.2
+                padel.bounds.h *= 1.1
                 powerup.play();
             }
             if (this.direction === 1) {
@@ -256,14 +244,57 @@ class BallSpeedPowerup {
         console.log(this.timeLength)
     }
 }
+// class Obstical {
+//     constructor() {
+//         this.bounds = new Rect(canvas.width,10,12,100);
+//         this.speed = 2;
+//     }
+//     update() {
+
+//     }
+//     draw() {
+//         ctx.fillStyle = "black"
+//         ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h,);
+
+//     }
+// }
+class Accesories {
+    constructor(padel,src) {
+        this.bounds = new Rect(padel.bounds.x,0,16*1.5,16*1.5)
+        this.image = new Image();
+        this.image.src = src
+    }
+    draw() {
+        // this.bounds.y = padel.bounds.y-20
+        // ctx.imageSmoothingEnabled = false;
+        // ctx.drawImage(this.image,this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+    }
+}
+let accesories = []
+//Global Variabls
+let currentKey = new Map();
+let navKey = new Map();
+let currentMouse = new Map();
+let mode = "menu"
+let music = new Audio("./Assets/Helios.mp3");
+let hit = new Audio("./Assets/Hit.mp3");
+let powerup = new Audio("./Assets/powerUp.mp3")
+let score = 0;
+let Shake = false;
+let vollumeLevel = true;
+let timmer = 0;
+let highScore = 0;
+let SpawnTime = Math.floor(Math.random() * 10 + 1);
+let gloabalSpeed = 1;
+let powerUps = []
+let tutorial = true;
+//CLASSES
+// let obstical = new Obstical();
 let particalEngine = new ParticleSource();
 let mouse = new Mouse();
 let storyButton = new Button("Story","./Assets/Button.png",600,250);
-let introButton = new Button("","./Assets/Button.png",600,300);
 let optionButton = new Button("Options","./Assets/Button.png",600,250);
 let endlessButton = new Button("Endless","./Assets/Button.png",600,250);
-
-let quitButton = new Button("Quit","./Assets/Button.png",600,250);
 let backButton = new Button("Back","./Assets/Button.png",600,250);
 let controllButton = new Button("Controlls","./Assets/Button.png",600,250);
 backButton.scale = 0.3
@@ -276,9 +307,8 @@ let option = new Scene("./Assets/BG.png");
 let controlls = new Scene("./Assets/BG.png");
 let ball = new Ball();
 let padel = new Padel();
-let powerUps = []
-let textOn = 1;
-let tutorial = true;
+let cheffHat = new Accesories(padel,"./Assets/ChefHat.png")
+
 function ShowTutorial() {
     if (ball.bounds.x >= canvas.width-400 && tutorial === true) {
         if (padel.sideOn === 1) {
@@ -344,6 +374,7 @@ function WorldColision() {
     if (ball.bounds.y >= canvas.height-20) {
         ball.spin = -1;
         particalEngine.start_particles(ball.bounds.x,ball.bounds.y)
+        hit.play();
         Shake = true
         setTimeout(() => {
             Shake = false
@@ -353,6 +384,7 @@ function WorldColision() {
     if (ball.bounds.y <= 0) {
         ball.spin = 1;
         particalEngine.start_particles(ball.bounds.x,ball.bounds.y)
+        hit.play();
         Shake = true
         setTimeout(() => {
             Shake = false
@@ -380,6 +412,14 @@ function SpawnPowerup() {
             timmer = 0;
         }
 }
+function DrawScore() {
+    ctx.font = "bold 80px Verdana";
+    ctx.fillStyle = " #ff6973 "
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = " #ffb0a3  ";
+    ctx.fillText(score,canvas.width/2-20,canvas.height/2-20)
+    ctx.shadowBlur = 0;
+}
 function loop() {
     ctx.save();
     ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -392,8 +432,8 @@ function loop() {
         music.pause();
     }
     if (Shake) {
-        var dx = Math.random()*20;
-        var dy = Math.random()*20;
+        var dx = Math.random()*15;
+        var dy = Math.random()*15;
         ctx.translate(dx, dy);
     }
     if (mode === "menu") {
@@ -403,12 +443,10 @@ function loop() {
             powerUps.length = 0;
         }
         menu.draw();
-        storyButton.draw(canvas.width/2-120,50,0,400,600,250);
-        optionButton.draw(canvas.width/2-120,350,0,400,600,250);
-        endlessButton.draw(canvas.width/2-120,200,0,400,600,250);
-
-        controllButton.draw(canvas.width/2-120,500,0,400,600,250)
-        quitButton.draw(canvas.width/2-120,650,0,400,600,250);
+        storyButton.draw(canvas.width/2-120,100,0,400,600,250);
+        endlessButton.draw(canvas.width/2-120,250,0,400,600,250);
+        optionButton.draw(canvas.width/2-120,400,0,400,600,250);
+        controllButton.draw(canvas.width/2-120,550,0,400,600,250)
         if (mouse.clickOn(endlessButton)) {
             mode = "endless"
         }
@@ -478,9 +516,11 @@ function loop() {
         timmer += 1;
         ShowTutorial();
         SpawnPowerup();
+        DrawScore();
         padel.draw();
         ball.draw();
         padel.update();
+        cheffHat.draw();
         for (let i = 0; i < powerUps.length; i++) {
             powerUps[i].draw();
             powerUps[i].update();
@@ -488,12 +528,6 @@ function loop() {
                 powerUps.shift();
             }
         }
-        ctx.font = "bold 80px Verdana";
-        ctx.fillStyle = "gray"
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = "black";
-        ctx.fillText(score,canvas.width/2-20,canvas.height/2-20)
-        ctx.shadowBlur = 0;
         particalEngine.draw_particles(ctx,238, 134, 149)
         padel.check_switch();
         particalEngine.update_particles();
@@ -501,50 +535,13 @@ function loop() {
         ball.collision();
         WorldColision();
     }
-    if (mode === "intro") {
-        ctx.pixelSmoothingEnabled = false;
-        introButton.draw(canvas.width/2-175,canvas.height/2+200,10,970,380,200);
-        ctx.fillStyle = "black"
-        ctx.textAlign = "center"
-        if (textOn === 1 || textOn === 2) {
-            ctx.font = "80px Inter-Light";
-            ctx.fillText("Switch Pong",canvas.width/2,canvas.height/2-100)
-        }
-        if (mouse.clickOn(introButton)) {
-            textOn += 1;
-            Shake = true
-            setTimeout(() => {
-                Shake = false
-              }, 150);
-        }
-        if (textOn === 2) {
-            ctx.font = "60px Inter-Thin";
-            ctx.fillText("By Jude Makes",canvas.width/2,canvas.height/2)
-        }
-        if (textOn === 3) {
-            mode = "menu"
-        }
-
-    }
     keyboardLoop();
     navKey.clear();
     postShake();
     currentMouse.clear();
-    trasition();
     requestAnimationFrame(loop)
 }
-function ResizeCanvas() {
-    canvas.width = window.innerWidth -30
-    canvas.height = window.innerHeight -30
-}
 function init() {
-    window.addEventListener("load", (e) => {
-        ResizeCanvas()
-      })
-      window.addEventListener("resize", (e) => {
-        ResizeCanvas();
-    
-    })
     mouse.init();
     keyboardInit();
     loop();
