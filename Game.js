@@ -1,6 +1,5 @@
 import { Rect } from "./RectUtils.js";
 import { ParticleSource } from "./Particals.js";
-import { Level, LevelSelector } from "./Levels.js";
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 class Mouse {
@@ -42,7 +41,8 @@ class Padel {
         this.speed = 4;
         this.sideOn = 1;
         this.direction = 0;
-        this.bounds = new Rect(10,canvas.height/2-50,12,125)
+        this.bounds = new Rect(10,canvas.height/2-50,15,100)
+        this.accesorie = null;
     }
     draw() {
         ctx.fillStyle = "black"
@@ -50,6 +50,9 @@ class Padel {
         ctx.shadowColor = "gray";
         ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
         ctx.shadowBlur = 0;
+        if (this.accesorie) {
+            this.accesorie.draw();
+        }
     }
     check_switch() {
         if (this.sideOn === 1) {
@@ -96,7 +99,7 @@ class Ball {
     }
     collision() {
         if (this.launched === true) {
-            if (this.bounds.intersects(padel.bounds)) {
+            if (this.bounds.intersects(padel.bounds) || padel.bounds.intersects(this.bounds) || this.bounds.intersects(padel.accesorie.bounds)) {
                 hit.play();
                 Shake = true
                   
@@ -198,13 +201,25 @@ class BallSpeedPowerup {
         console.log(this.timeLength)
     }
 }
+class Accesorie {
+    constructor(src) {
+        this.bounds = new Rect(20,20,32,32)
+        this.image = new Image();
+        this.image.src = src
+    }
+    draw() {
+        this.bounds.x = padel.bounds.x-padel.bounds.w+6
+        this.bounds.y = padel.bounds.y-30
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(this.image,this.bounds.x, this.bounds.y,this.bounds.w,this.bounds.h)
+    }
 
+}
 //Global Variabls
 let currentKey = new Map();
 let navKey = new Map();
 let currentMouse = new Map();
 let mode = "menu"
-let level = ""
 let music = new Audio("./Assets/Helios.mp3");
 let hit = new Audio("./Assets/Hit.mp3");
 let powerup = new Audio("./Assets/powerUp.mp3")
@@ -236,21 +251,17 @@ let controlls = new Scene("./Assets/BG.png");
 let ball = new Ball();
 let balls = [ball]
 let padel = new Padel();
-
-let level1 = new Level();
-level1.DisplayText = "1"
-let level2 = new Level();
-level2.DisplayText = "2"
-export let levels = [level1,level2];
-let levelSelector = new LevelSelector(levels)
+let cheffHat = new Accesorie("./Assets/ChefHat.png")
+padel.accesorie = cheffHat
 function ShowTutorial() {
     for (let i = 0; i < balls.length; i++) {
         if (balls[i].bounds.x >= canvas.width-400 && tutorial === true) {
             if (padel.sideOn === 1) {
                 gloabalSpeed = 0.5;
                 ctx.font = "bold 40px Verdana";
+                ctx.fillStyle = "black"
                 ctx.globalAlpha = 0.5;
-                ctx.fillText("Use A and D To switch Sides",canvas.width/2-300,300)
+                ctx.fillText("Use A and D To switch Sides",canvas.width/2-300,200)
                 ctx.globalAlpha = 1;
             }
             if (padel.sideOn === -1) {
@@ -268,7 +279,7 @@ function keyboardLoop() {
                     balls[i].launched = true;
                 }
                 padel.bounds.y -= padel.speed*gloabalSpeed
-                padel.direction = -1   
+                padel.direction = -1
             }
             if (currentKey.get("s") || currentKey.get("ArrowDown")) {
                 if (balls[i].launched === false) {
@@ -337,8 +348,8 @@ function WorldColision() {
     
         }
     }
-    if (padel.bounds.y <= 0) {
-        padel.bounds.y = 0;
+    if (padel.bounds.y <= 0 || padel.accesorie.bounds.y <= 0) {
+        padel.bounds.y = 30;
     }
     if (padel.bounds.y >= canvas.height-padel.bounds.h) {
         padel.bounds.y = canvas.height-padel.bounds.h;
@@ -460,7 +471,6 @@ function loop() {
     }
     if (mode === "endless") {
         timmer += 1;
-        ShowTutorial();
         SpawnPowerup();
         DrawScore();
         padel.draw();
@@ -468,7 +478,6 @@ function loop() {
             balls[i].draw();
             balls[i].update();
             balls[i].collision();
-
         } 
         padel.update();
         for (let i = 0; i < powerUps.length; i++) {
@@ -482,15 +491,17 @@ function loop() {
         padel.check_switch();
         particalEngine.update_particles();
         WorldColision();
+        ShowTutorial();
+
     }
     if (mode === "story") {
-        levelSelector.draw(ctx);
-        for (let i = 0; i < levels.length; i++) {
-            if (mouse.clickOn(levels[i].DisplayBounds)) {
-                console.log("Clicked")
-                levels[i].draw(ctx);
-            }
-        }
+        // levelSelector.draw(ctx);
+        // for (let i = 0; i < levels.length; i++) {
+        //     if (mouse.clickOn(levels[i].DisplayBounds)) {
+        //         console.log("Clicked")
+        //         // levels[i].draw(ctx);
+        //     }
+        // }
     }
     keyboardLoop();
     navKey.clear();
