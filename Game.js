@@ -88,10 +88,10 @@ class Padel {
         this.speed = 4;
         this.sideOn = 1;
         this.direction = 0;
-        this.bounds = new Rect(10,canvas.height/2+50,15,125)
+        this.bounds = new Rect(10,canvas.height/2-50,12,125)
     }
     draw() {
-        ctx.fillStyle = "#eb8c34"
+        ctx.fillStyle = "black"
         ctx.shadowBlur = 10;
         ctx.shadowColor = "gray";
         ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
@@ -125,7 +125,7 @@ class Ball {
         this.speed = 2*gloabalSpeed;
         this.spin = 0;
         this.spinSpeed = 3;
-        this.bounds = new Rect(canvas.width-100,canvas.height-150,10,10)
+        this.bounds = new Rect(canvas.width/2,canvas.height/2,10,10)
     }
     draw() {
         ctx.fillStyle = "#ff6973"
