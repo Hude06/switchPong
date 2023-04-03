@@ -124,7 +124,7 @@ class Ball {
         this.launched = false;
         this.speed = 2*gloabalSpeed;
         this.spin = 0;
-        this.spinSpeed = 3;
+        this.spinSpeed = Math.floor(Math.random() * 3) + 1; ;
         this.bounds = new Rect(canvas.width/2,canvas.height/2,10,10)
     }
     draw() {
@@ -244,33 +244,6 @@ class BallSpeedPowerup {
         console.log(this.timeLength)
     }
 }
-// class Obstical {
-//     constructor() {
-//         this.bounds = new Rect(canvas.width,10,12,100);
-//         this.speed = 2;
-//     }
-//     update() {
-
-//     }
-//     draw() {
-//         ctx.fillStyle = "black"
-//         ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h,);
-
-//     }
-// }
-class Accesories {
-    constructor(padel,src) {
-        this.bounds = new Rect(padel.bounds.x,0,16*1.5,16*1.5)
-        this.image = new Image();
-        this.image.src = src
-    }
-    draw() {
-        // this.bounds.y = padel.bounds.y-20
-        // ctx.imageSmoothingEnabled = false;
-        // ctx.drawImage(this.image,this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
-    }
-}
-let accesories = []
 //Global Variabls
 let currentKey = new Map();
 let navKey = new Map();
@@ -289,7 +262,6 @@ let gloabalSpeed = 1;
 let powerUps = []
 let tutorial = true;
 //CLASSES
-// let obstical = new Obstical();
 let particalEngine = new ParticleSource();
 let mouse = new Mouse();
 let storyButton = new Button("Story","./Assets/Button.png",600,250);
@@ -306,52 +278,56 @@ let menu = new Scene("./Assets/BG.png");
 let option = new Scene("./Assets/BG.png");
 let controlls = new Scene("./Assets/BG.png");
 let ball = new Ball();
+let balls = [ball]
 let padel = new Padel();
-let cheffHat = new Accesories(padel,"./Assets/ChefHat.png")
 
 function ShowTutorial() {
-    if (ball.bounds.x >= canvas.width-400 && tutorial === true) {
-        if (padel.sideOn === 1) {
-            gloabalSpeed = 0.5;
-            ctx.font = "bold 40px Verdana";
-            ctx.globalAlpha = 0.5;
-            ctx.fillText("Use A and D To switch Sides",canvas.width/2-300,300)
-            ctx.globalAlpha = 1;
-        }
-        if (padel.sideOn === -1) {
-            gloabalSpeed = 1;
-            tutorial = false;
+    for (let i = 0; i < balls.length; i++) {
+        if (balls[i].bounds.x >= canvas.width-400 && tutorial === true) {
+            if (padel.sideOn === 1) {
+                gloabalSpeed = 0.5;
+                ctx.font = "bold 40px Verdana";
+                ctx.globalAlpha = 0.5;
+                ctx.fillText("Use A and D To switch Sides",canvas.width/2-300,300)
+                ctx.globalAlpha = 1;
+            }
+            if (padel.sideOn === -1) {
+                gloabalSpeed = 1;
+                tutorial = false;
+            }
         }
     }
 }
 function keyboardLoop() {
-    if (mode === "endless" || mode === "story") {
-        if (currentKey.get("w") || currentKey.get("ArrowUp")) {
-            if (ball.launched === false) {
-                ball.launched = true;
+    for (let i = 0; i < balls.length; i++) {
+        if (mode === "endless" || mode === "story") {
+            if (currentKey.get("w") || currentKey.get("ArrowUp")) {
+                if (balls[i].launched === false) {
+                    balls[i].launched = true;
+                }
+                padel.bounds.y -= padel.speed*gloabalSpeed
+                padel.direction = -1   
             }
-            padel.bounds.y -= padel.speed*gloabalSpeed
-            padel.direction = -1   
-        }
-        if (currentKey.get("s") || currentKey.get("ArrowDown")) {
-            if (ball.launched === false) {
-                ball.launched = true;
+            if (currentKey.get("s") || currentKey.get("ArrowDown")) {
+                if (balls[i].launched === false) {
+                    balls[i].launched = true;
+                }
+                padel.bounds.y += padel.speed*gloabalSpeed
+                padel.direction = 1
             }
-            padel.bounds.y += padel.speed*gloabalSpeed
-            padel.direction = 1
-        }
-        if (navKey.get("a") || currentKey.get("ArrowLeft")) {
-            if (ball.launched === false) {
-                ball.launched = true;
+            if (navKey.get("a") || currentKey.get("ArrowLeft")) {
+                if (balls[i].launched === false) {
+                    balls[i].launched = true;
+                }
+                padel.sideOn = 1
             }
-            padel.sideOn = 1
-        }
-        if (navKey.get("d") || currentKey.get("ArrowRight")) {
-            if (ball.launched === false) {
-                ball.launched = true;
+            if (navKey.get("d") || currentKey.get("ArrowRight")) {
+                if (balls[i].launched === false) {
+                    balls[i].launched = true;
+                }
+                padel.sideOn = -1
             }
-            padel.sideOn = -1
-        }
+        }   
     }
 }
 function postShake() {
@@ -371,31 +347,33 @@ function keyboardInit() {
     });
 }
 function WorldColision() {
-    if (ball.bounds.y >= canvas.height-20) {
-        ball.spin = -1;
-        particalEngine.start_particles(ball.bounds.x,ball.bounds.y)
-        hit.play();
-        Shake = true
-        setTimeout(() => {
-            Shake = false
-          }, 150);
-
-    }
-    if (ball.bounds.y <= 0) {
-        ball.spin = 1;
-        particalEngine.start_particles(ball.bounds.x,ball.bounds.y)
-        hit.play();
-        Shake = true
-        setTimeout(() => {
-            Shake = false
-          }, 150);
-    }
-    if (ball.bounds.x <= 0) {
-        mode = "dead"
-    }
-    if (ball.bounds.x >= canvas.width) {
-        mode = "dead"
-
+    for (let i = 0; i < balls.length; i++) {
+        if (balls[i].bounds.y >= canvas.height-20) {
+            balls[i].spin = -1;
+            particalEngine.start_particles(balls[i].bounds.x,balls[i].bounds.y)
+            hit.play();
+            Shake = true
+            setTimeout(() => {
+                Shake = false
+              }, 150);
+    
+        }
+        if (balls[i].bounds.y <= 0) {
+            balls[i].spin = 1;
+            particalEngine.start_particles(balls[i].bounds.x,balls[i].bounds.y)
+            hit.play();
+            Shake = true
+            setTimeout(() => {
+                Shake = false
+              }, 150);
+        }
+        if (balls[i].bounds.x <= 0) {
+            mode = "dead"
+        }
+        if (balls[i].bounds.x >= canvas.width) {
+            mode = "dead"
+    
+        }
     }
     if (padel.bounds.y <= 0) {
         padel.bounds.y = 0;
@@ -507,7 +485,10 @@ function loop() {
 
         if (mouse.clickOn(retryButton))  {
                 padel.reset();
-                ball.reset();
+                for (let i = 0; i < balls.length; i++) {
+                    balls[i].reset();
+
+                }
                 score = 0;
                 mode = "menu"
         }
@@ -518,9 +499,13 @@ function loop() {
         SpawnPowerup();
         DrawScore();
         padel.draw();
-        ball.draw();
+        for (let i = 0; i < balls.length; i++) {
+            balls[i].draw();
+            balls[i].update();
+            balls[i].collision();
+
+        } 
         padel.update();
-        cheffHat.draw();
         for (let i = 0; i < powerUps.length; i++) {
             powerUps[i].draw();
             powerUps[i].update();
@@ -531,8 +516,6 @@ function loop() {
         particalEngine.draw_particles(ctx,238, 134, 149)
         padel.check_switch();
         particalEngine.update_particles();
-        ball.update();
-        ball.collision();
         WorldColision();
     }
     keyboardLoop();
