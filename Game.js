@@ -1,5 +1,6 @@
 import { Rect } from "./RectUtils.js";
 import { ParticleSource } from "./Particals.js";
+import { Level, LevelSelector } from "./Levels.js";
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 class Mouse {
@@ -20,7 +21,7 @@ class Mouse {
 
     }
     clickOn(item) {
-        if (this.bounds.intersects(item.bounds) && currentMouse.get(0) === true) {
+        if (this.bounds.intersects(item) && currentMouse.get(0) === true) {
             return true;
         }
     }
@@ -197,11 +198,13 @@ class BallSpeedPowerup {
         console.log(this.timeLength)
     }
 }
+
 //Global Variabls
 let currentKey = new Map();
 let navKey = new Map();
 let currentMouse = new Map();
 let mode = "menu"
+let level = ""
 let music = new Audio("./Assets/Helios.mp3");
 let hit = new Audio("./Assets/Hit.mp3");
 let powerup = new Audio("./Assets/powerUp.mp3")
@@ -234,6 +237,12 @@ let ball = new Ball();
 let balls = [ball]
 let padel = new Padel();
 
+let level1 = new Level();
+level1.DisplayText = "1"
+let level2 = new Level();
+level2.DisplayText = "2"
+export let levels = [level1,level2];
+let levelSelector = new LevelSelector(levels)
 function ShowTutorial() {
     for (let i = 0; i < balls.length; i++) {
         if (balls[i].bounds.x >= canvas.width-400 && tutorial === true) {
@@ -357,7 +366,7 @@ function loop() {
     if (vollumeLevel) {
         music.play();
         music.loop = true;
-        music.volume = 0.3;
+        music.volume = 0.2;
     }
     if (vollumeLevel === false) {
         music.pause();
@@ -377,15 +386,18 @@ function loop() {
         storyButton.draw(canvas.width/2-120,100,0,400,600,250);
         endlessButton.draw(canvas.width/2-120,250,0,400,600,250);
         optionButton.draw(canvas.width/2-120,400,0,400,600,250);
-        controllButton.draw(canvas.width/2-120,550,0,400,600,250)
-        if (mouse.clickOn(endlessButton)) {
+        controllButton.draw(canvas.width/2-120,550,0,400,600,250);
+        if (mouse.clickOn(endlessButton.bounds)) {
             mode = "endless"
         }
-        if (mouse.clickOn(optionButton)) {
+        if (mouse.clickOn(optionButton.bounds)) {
             mode = "option"
         }
-        if (mouse.clickOn(controllButton)) {
+        if (mouse.clickOn(controllButton.bounds)) {
             mode = "controlls"
+        }
+        if (mouse.clickOn(storyButton.bounds)) {
+            mode = "story"
         }
     }
     if (mode === "controlls") {
@@ -403,14 +415,14 @@ function loop() {
 
 
 
-        if (mouse.clickOn(backButton)) {
+        if (mouse.clickOn(backButton.bounds)) {
             mode = "menu"
         }
     }
     if (mode === "option") {
         option.draw();
         backButton.draw(-50,-20,0,400,600,250);
-        if (mouse.clickOn(backButton)) {
+        if (mouse.clickOn(backButton.bounds)) {
             mode = "menu"
         }
         if (vollumeLevel) {
@@ -419,7 +431,7 @@ function loop() {
         if (vollumeLevel === false) {
             vollumeOff.draw(canvas.width/2-120,150,2945.5,525,345,195);
         }
-        if (mouse.clickOn(vollume)) {                
+        if (mouse.clickOn(vollume.bounds)) {                
             vollumeLevel = !vollumeLevel;
         }
         
@@ -436,7 +448,7 @@ function loop() {
         ctx.fillText("HIGH SCORE " + highScore,canvas.width/2,canvas.height/2+225-100)
         retryButton.draw(canvas.width/2-150,canvas.height/2-100,0,400,600,250);
 
-        if (mouse.clickOn(retryButton))  {
+        if (mouse.clickOn(retryButton.bounds))  {
                 padel.reset();
                 for (let i = 0; i < balls.length; i++) {
                     balls[i].reset();
@@ -470,6 +482,15 @@ function loop() {
         padel.check_switch();
         particalEngine.update_particles();
         WorldColision();
+    }
+    if (mode === "story") {
+        levelSelector.draw(ctx);
+        for (let i = 0; i < levels.length; i++) {
+            if (mouse.clickOn(levels[i].DisplayBounds)) {
+                console.log("Clicked")
+                levels[i].draw(ctx);
+            }
+        }
     }
     keyboardLoop();
     navKey.clear();
