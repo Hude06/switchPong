@@ -292,12 +292,15 @@ function keyboardLoop() {
                 if (balls[i].launched === false) {
                     balls[i].launched = true;
                 }
+                // particalEngine.start_particles(padel.bounds.x,padel.bounds.y)
                 padel.sideOn = 1
             }
             if (navKey.get("d") || currentKey.get("ArrowRight")) {
                 if (balls[i].launched === false) {
                     balls[i].launched = true;
                 }
+                // particalEngine.start_particles(padel.bounds.x,padel.bounds.y)
+
                 padel.sideOn = -1
             }
         }   
