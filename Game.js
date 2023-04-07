@@ -99,7 +99,7 @@ class Ball {
     }
     collision() {
         if (this.launched === true) {
-            if (this.bounds.intersects(padel.bounds) || padel.bounds.intersects(this.bounds) || this.bounds.intersects(padel.accesorie.bounds)) {
+            if (this.bounds.intersects(padel.bounds) || padel.bounds.intersects(this.bounds)) {
                 hit.play();
                 Shake = true
                   
@@ -201,20 +201,6 @@ class BallSpeedPowerup {
         console.log(this.timeLength)
     }
 }
-class Accesorie {
-    constructor(src) {
-        this.bounds = new Rect(20,20,32,32)
-        this.image = new Image();
-        this.image.src = src
-    }
-    draw() {
-        this.bounds.x = padel.bounds.x-padel.bounds.w+6
-        this.bounds.y = padel.bounds.y-30
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(this.image,this.bounds.x, this.bounds.y,this.bounds.w,this.bounds.h)
-    }
-
-}
 //Global Variabls
 let currentKey = new Map();
 let navKey = new Map();
@@ -251,8 +237,6 @@ let controlls = new Scene("./Assets/BG.png");
 let ball = new Ball();
 let balls = [ball]
 let padel = new Padel();
-let cheffHat = new Accesorie("./Assets/ChefHat.png")
-padel.accesorie = cheffHat
 function ShowTutorial() {
     for (let i = 0; i < balls.length; i++) {
         if (balls[i].bounds.x >= canvas.width-400 && tutorial === true) {
@@ -351,7 +335,7 @@ function WorldColision() {
     
         }
     }
-    if (padel.bounds.y <= 0 || padel.accesorie.bounds.y <= 0) {
+    if (padel.bounds.y <= 0) {
         padel.bounds.y = 30;
     }
     if (padel.bounds.y >= canvas.height-padel.bounds.h) {
